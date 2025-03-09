@@ -1,5 +1,5 @@
 import struct
-
+import utils
 
 
 # Receiver Class
@@ -13,12 +13,12 @@ class Receiver:
     def start(self):
         """Start receiving packets."""
         while True:
-            packet, _ = self.sock.recvfrom(PACKET_SIZE)
-            if is_corrupted(packet):
+            packet, _ = self.sock.recvfrom(utils.PACKET_SIZE)
+            if utils.is_corrupted(packet):
                 print("Received corrupted packet, ignoring...")
                 continue
 
-            seq_num, _, data = parse_packet(packet)
+            seq_num, _, data = utils.parse_packet(packet)
             if seq_num == self.expected_seq_num:
                 print(f"Received packet {seq_num}, delivering...")
                 self.sock.sendto(struct.pack("!I", seq_num), self.sender_address)

@@ -1,4 +1,11 @@
 # Sender Class
+import struct
+import threading
+import time
+
+from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE
+
+
 class Sender:
     def __init__(self, sender_socket, receiver_address):
         self.sock = sender_socket
