@@ -2,11 +2,7 @@ import random
 import socket
 import time
 
-# Constants
-PACKET_SIZE = 1024
-LOSS_PROBABILITY = 0.1
-CORRUPTION_PROBABILITY = 0.1
-REORDER_PROBABILITY = 0.1
+from utils import PACKET_SIZE, LOSS_PROBABILITY, CORRUPTION_PROBABILITY, REORDER_PROBABILITY
 
 
 # Network Simulator
