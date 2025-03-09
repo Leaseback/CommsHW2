@@ -1,3 +1,7 @@
+import struct
+
+
+
 # Receiver Class
 class Receiver:
     def __init__(self, receiver_socket, sender_address):
