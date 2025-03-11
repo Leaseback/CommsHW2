@@ -1,3 +1,4 @@
+import socket
 import struct
 import utils
 
@@ -34,3 +35,17 @@ class Receiver:
                 self.sock.sendto(struct.pack("!I", seq_num), self.sender_address)
             else:
                 self.sock.sendto(struct.pack("!I", seq_num), self.sender_address)
+
+
+def main():
+    # Initialize the receiver socket and sender address
+    receiver_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    receiver_sock.bind(("localhost", 9998))  # Listen on this port
+    sender_address = ("localhost", 9999)  # Address of the sender or network simulator
+    receiver = Receiver(receiver_sock, sender_address)
+
+    receiver.start()
+
+
+if __name__ == "__main__":
+    main()

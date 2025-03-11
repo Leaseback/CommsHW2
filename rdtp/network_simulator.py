@@ -28,3 +28,15 @@ class NetworkSimulator:
                 time.sleep(0.5)
                 print("Packet reordered!")
             self.listen_socket.sendto(packet, self.forward_address)
+
+
+def main():
+    listen_address = ("localhost", 9999)  # The port the simulator listens on
+    forward_address = ("localhost", 9998)  # Forwarding address to the receiver
+
+    simulator = NetworkSimulator(listen_address, forward_address)
+    simulator.start()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,5 @@
 # Sender Class
+import socket
 import struct
 import threading
 import time
@@ -58,3 +59,18 @@ class Sender:
                 print(f"Timeout for packet {seq_num}, retransmitting...")
                 self.sock.sendto(packet, self.receiver_address)
                 self.window[seq_num] = (packet, time.time())
+
+
+def main():
+    # Initialize the sender socket and receiver address
+    sender_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    receiver_address = ("localhost", 9999)  # Change to simulator address
+    sender = Sender(sender_sock, receiver_address)
+
+    # Example data chunks to send
+    data_chunks = [b"Hello", b"World", b"This", b"is", b"RDT"]
+    sender.start(data_chunks)
+
+
+if __name__ == "__main__":
+    main()

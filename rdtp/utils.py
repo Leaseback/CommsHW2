@@ -9,6 +9,7 @@ LOSS_PROBABILITY = 0.1
 CORRUPTION_PROBABILITY = 0.1
 REORDER_PROBABILITY = 0.1
 
+
 def compute_checksum(data):
     """Compute a simple checksum."""
     return sum(data) % 256
