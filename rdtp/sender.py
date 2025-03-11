@@ -6,7 +6,7 @@ import sys
 import threading
 import time
 
-from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE
+from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE, SIMULATED_LATENCY
 
 
 class Sender:
@@ -26,7 +26,7 @@ class Sender:
         self.sock.sendto(packet, self.simulator_address)  # Send to the network simulator
         self.window[seq_num] = (packet, time.time())
         print(f"Sender: Sent packet {seq_num} to Network Simulator")
-        time.sleep(0.5)  # Delay of 0.5 seconds before sending the next packet
+        time.sleep(SIMULATED_LATENCY)  # Delay of 0.5 seconds before sending the next packet
 
     def start(self):
         """Start sending packets from the file."""
