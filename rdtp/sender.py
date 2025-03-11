@@ -37,10 +37,19 @@ class Sender:
             self.ack_event.wait(TIMEOUT)
             self.handle_timeouts()
 
+        # Send end-of-transmission packet
+        self.send_end_of_transmission()
+
+    def send_end_of_transmission(self):
+        """Send an empty packet with a special sequence number to indicate end-of-transmission."""
+        end_signal = struct.pack("!I", 99999999)  # Unique large sequence number as end signal
+        self.sock.sendto(end_signal, self.receiver_address)
+        print("Sent end-of-transmission signal")
+
     def receive_acks(self):
         """Listen for acknowledgments."""
         while True:
-            ack_packet, _ = self.sock.recvfrom(PACKET_SIZE)
+            ack_packet, _ = self.sock.recvfrom(1024)
             ack_seq_num = struct.unpack("!I", ack_packet[:4])[0]
             with self.lock:
                 if ack_seq_num in self.window:
@@ -64,11 +73,12 @@ class Sender:
 def main():
     # Initialize the sender socket and receiver address
     sender_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    receiver_address = ("localhost", 9999)  # Change to simulator address
+    receiver_address = ("localhost", 9998)  # Change to simulator address
     sender = Sender(sender_sock, receiver_address)
 
     # Example data chunks to send
     data_chunks = [b"Hello", b"World", b"This", b"is", b"RDT"]
+    sender_sock.bind(("0.0.0.0", 9997))  # Bind to an ephemeral port
     sender.start(data_chunks)
 
 
