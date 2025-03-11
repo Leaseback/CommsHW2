@@ -21,20 +21,30 @@ class NetworkSimulator:
                 continue
             if random.random() < CORRUPTION_PROBABILITY:
                 packet = bytearray(packet)
-                packet[5] ^= 0xFF  # Corrupt data
+                packet[0] ^= 0xFF  # Corrupt data
                 packet = bytes(packet)
                 print("Packet corrupted!")
             if random.random() < REORDER_PROBABILITY:
                 time.sleep(0.5)
                 print("Packet reordered!")
+
+            # Forwarding logic
+            # If packet is from sender, forward to receiver
             self.listen_socket.sendto(packet, self.forward_address)
+            print(f"Forwarded packet to receiver at {self.forward_address}")
+
+            # If packet is from receiver, forward to sender
+            self.listen_socket.sendto(packet, addr)
+            print(f"Forwarded packet back to sender at {addr}")
 
 
 def main():
-    listen_address = ("localhost", 9999)  # The port the simulator listens on
-    forward_address = ("localhost", 9998)  # Forwarding address to the receiver
+    listen_address = ("localhost", 9999)  # The port the simulator listens on (receiving from sender and receiver)
+    forward_address = ("localhost", 9998)  # The address to forward packets to (receiver's address)
 
     simulator = NetworkSimulator(listen_address, forward_address)
+
+    # Start the network simulator to handle packet forwarding and impairments
     simulator.start()
 
 

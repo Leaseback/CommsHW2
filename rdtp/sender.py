@@ -8,9 +8,9 @@ from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE
 
 
 class Sender:
-    def __init__(self, sender_socket, receiver_address):
+    def __init__(self, sender_socket, simulator_address):
         self.sock = sender_socket
-        self.receiver_address = receiver_address
+        self.simulator_address = simulator_address
         self.base = 0
         self.next_seq_num = 0
         self.window = {}
@@ -20,9 +20,10 @@ class Sender:
     def send_packet(self, seq_num, data):
         """Send a packet and store it in the window."""
         packet = make_packet(seq_num, data)
-        self.sock.sendto(packet, self.receiver_address)
+        self.sock.sendto(packet, self.simulator_address)  # Send to the network simulator
         self.window[seq_num] = (packet, time.time())
-        print(f"Sent packet {seq_num}")
+        print(f"Sent packet {seq_num} to Network Simulator")
+        time.sleep(0.5)  # Delay of 0.5 seconds before sending the next packet
 
     def start(self, data_chunks):
         """Start sending packets."""
@@ -43,8 +44,8 @@ class Sender:
     def send_end_of_transmission(self):
         """Send an empty packet with a special sequence number to indicate end-of-transmission."""
         end_signal = struct.pack("!I", 99999999)  # Unique large sequence number as end signal
-        self.sock.sendto(end_signal, self.receiver_address)
-        print("Sent end-of-transmission signal")
+        self.sock.sendto(end_signal, self.simulator_address)  # Send to Network Simulator
+        print("Sent end-of-transmission signal to Network Simulator")
 
     def receive_acks(self):
         """Listen for acknowledgments."""
@@ -66,19 +67,24 @@ class Sender:
         for seq_num, (packet, timestamp) in list(self.window.items()):
             if current_time - timestamp > TIMEOUT:
                 print(f"Timeout for packet {seq_num}, retransmitting...")
-                self.sock.sendto(packet, self.receiver_address)
+                self.sock.sendto(packet, self.simulator_address)  # Retransmit to Network Simulator
                 self.window[seq_num] = (packet, time.time())
 
 
 def main():
-    # Initialize the sender socket and receiver address
+    # Initialize the sender socket and network simulator address
     sender_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    receiver_address = ("localhost", 9998)  # Change to simulator address
-    sender = Sender(sender_sock, receiver_address)
+    simulator_address = ("localhost", 9999)  # The address of the network simulator (sending to the simulator)
+
+    sender = Sender(sender_sock, simulator_address)
 
     # Example data chunks to send
     data_chunks = [b"Hello", b"World", b"This", b"is", b"RDT"]
-    sender_sock.bind(("0.0.0.0", 9997))  # Bind to an ephemeral port
+
+    # Bind the sender to a port for receiving ACKs (or a random ephemeral port)
+    sender_sock.bind(("0.0.0.0", 9997))  # Bind to an ephemeral port (change this if needed)
+
+    # Start the sender to send packets
     sender.start(data_chunks)
 
 

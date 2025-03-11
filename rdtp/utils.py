@@ -12,7 +12,10 @@ REORDER_PROBABILITY = 0.1
 
 def compute_checksum(data):
     """Compute a simple checksum."""
-    return sum(data) % 256
+    if data is None:
+        return -1
+    else:
+        return sum(data) % 256
 
 
 def make_packet(seq_num, data):
