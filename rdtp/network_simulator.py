@@ -18,25 +18,25 @@ class NetworkSimulator:
         while True:
             packet, addr = self.listen_socket.recvfrom(PACKET_SIZE + 5)
             if random.random() < LOSS_PROBABILITY:
-                print("Packet lost!")
+                print("Network Simulator: Packet lost!")
                 continue
             if random.random() < CORRUPTION_PROBABILITY:
                 packet = bytearray(packet)
                 packet[0] ^= 0xFF  # Corrupt data
                 packet = bytes(packet)
-                print("Packet corrupted!")
+                print("Network Simulator: Packet corrupted!")
             if random.random() < REORDER_PROBABILITY:
                 time.sleep(0.5)
-                print("Packet reordered!")
+                print("Network Simulator: Packet reordered!")
 
             # Forwarding logic
             # If packet is from sender, forward to receiver
             self.listen_socket.sendto(packet, self.forward_address)
-            print(f"Forwarded packet to receiver at {self.forward_address}")
+            print(f"Network Simulator: Forwarded packet to receiver at {self.forward_address}")
 
             # If packet is from receiver, forward to sender
             self.listen_socket.sendto(packet, addr)
-            print(f"Forwarded packet back to sender at {addr}")
+            print(f"Network Simulator: Forwarded packet back to sender at {addr}")
 
 
 def main():
