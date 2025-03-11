@@ -1,17 +1,10 @@
 # Sender Class
+import os
 import socket
 import struct
 import sys
 import threading
 import time
-
-from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE
-
-import socket
-import struct
-import threading
-import time
-import os
 
 from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE
 
