@@ -9,13 +9,14 @@ from utils import PACKET_SIZE, LOSS_PROBABILITY, CORRUPTION_PROBABILITY, REORDER
 class NetworkSimulator:
     def __init__(self, listen_address, forward_address):
         self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
         self.listen_socket.bind(listen_address)
         self.forward_address = forward_address
 
     def start(self):
         """Start forwarding packets with simulated impairments."""
         while True:
-            packet, addr = self.listen_socket.recvfrom(PACKET_SIZE)
+            packet, addr = self.listen_socket.recvfrom(PACKET_SIZE + 5)
             if random.random() < LOSS_PROBABILITY:
                 print("Packet lost!")
                 continue

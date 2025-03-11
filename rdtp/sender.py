@@ -6,9 +6,17 @@ import time
 
 from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE
 
+import socket
+import struct
+import threading
+import time
+import os
+
+from utils import make_packet, WINDOW_SIZE, TIMEOUT, PACKET_SIZE
+
 
 class Sender:
-    def __init__(self, sender_socket, simulator_address):
+    def __init__(self, sender_socket, simulator_address, file_path):
         self.sock = sender_socket
         self.simulator_address = simulator_address
         self.base = 0
@@ -16,6 +24,7 @@ class Sender:
         self.window = {}
         self.lock = threading.Lock()
         self.ack_event = threading.Event()
+        self.file_path = file_path
 
     def send_packet(self, seq_num, data):
         """Send a packet and store it in the window."""
@@ -25,8 +34,13 @@ class Sender:
         print(f"Sent packet {seq_num} to Network Simulator")
         time.sleep(0.5)  # Delay of 0.5 seconds before sending the next packet
 
-    def start(self, data_chunks):
-        """Start sending packets."""
+    def start(self):
+        """Start sending packets from the file."""
+        with open(self.file_path, "rb") as file:
+            file_data = file.read()
+
+        data_chunks = [file_data[i:i + PACKET_SIZE] for i in range(0, len(file_data), PACKET_SIZE)]
+
         threading.Thread(target=self.receive_acks, daemon=True).start()
 
         while self.base < len(data_chunks):
@@ -50,7 +64,7 @@ class Sender:
     def receive_acks(self):
         """Listen for acknowledgments."""
         while True:
-            ack_packet, _ = self.sock.recvfrom(1024)
+            ack_packet, _ = self.sock.recvfrom(PACKET_SIZE + 5)
             ack_seq_num = struct.unpack("!I", ack_packet[:4])[0]
             with self.lock:
                 if ack_seq_num in self.window:
@@ -74,18 +88,15 @@ class Sender:
 def main():
     # Initialize the sender socket and network simulator address
     sender_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    simulator_address = ("localhost", 9999)  # The address of the network simulator (sending to the simulator)
+    simulator_address = ("localhost", 9999)  # The address of the network simulator
 
-    sender = Sender(sender_sock, simulator_address)
+    file_path = "bf2024.jpg"  # File to be sent
+    sender = Sender(sender_sock, simulator_address, file_path)
 
-    # Example data chunks to send
-    data_chunks = [b"Hello", b"World", b"This", b"is", b"RDT"]
-
-    # Bind the sender to a port for receiving ACKs (or a random ephemeral port)
-    sender_sock.bind(("0.0.0.0", 9997))  # Bind to an ephemeral port (change this if needed)
+    sender_sock.bind(("0.0.0.0", 9997))  # Bind to an ephemeral port
 
     # Start the sender to send packets
-    sender.start(data_chunks)
+    sender.start()
 
 
 if __name__ == "__main__":
