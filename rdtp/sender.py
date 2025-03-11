@@ -1,6 +1,7 @@
 # Sender Class
 import socket
 import struct
+import sys
 import threading
 import time
 
@@ -31,7 +32,7 @@ class Sender:
         packet = make_packet(seq_num, data)
         self.sock.sendto(packet, self.simulator_address)  # Send to the network simulator
         self.window[seq_num] = (packet, time.time())
-        print(f"Sent packet {seq_num} to Network Simulator")
+        print(f"Sender: Sent packet {seq_num} to Network Simulator")
         time.sleep(0.5)  # Delay of 0.5 seconds before sending the next packet
 
     def start(self):
@@ -59,7 +60,7 @@ class Sender:
         """Send an empty packet with a special sequence number to indicate end-of-transmission."""
         end_signal = struct.pack("!I", 99999999)  # Unique large sequence number as end signal
         self.sock.sendto(end_signal, self.simulator_address)  # Send to Network Simulator
-        print("Sent end-of-transmission signal to Network Simulator")
+        print("Sender: Sent end-of-transmission signal to Network Simulator")
 
     def receive_acks(self):
         """Listen for acknowledgments."""
@@ -68,7 +69,7 @@ class Sender:
             ack_seq_num = struct.unpack("!I", ack_packet[:4])[0]
             with self.lock:
                 if ack_seq_num in self.window:
-                    print(f"Received ACK for {ack_seq_num}")
+                    print(f"Sender: Received ACK for {ack_seq_num}")
                     del self.window[ack_seq_num]
                     if ack_seq_num == self.base:
                         while self.base not in self.window and self.base < self.next_seq_num:
@@ -80,20 +81,31 @@ class Sender:
         current_time = time.time()
         for seq_num, (packet, timestamp) in list(self.window.items()):
             if current_time - timestamp > TIMEOUT:
-                print(f"Timeout for packet {seq_num}, retransmitting...")
+                print(f"Sender: Timeout for packet {seq_num}, retransmitting...")
                 self.sock.sendto(packet, self.simulator_address)  # Retransmit to Network Simulator
                 self.window[seq_num] = (packet, time.time())
 
 
 def main():
+    # Get file path from command-line argument
+    if len(sys.argv) != 2:
+        print("Sender: Usage: python sender.py <file_path>")
+        return
+
+    file_path = sys.argv[1]
+
+    if not os.path.exists(file_path):
+        print(f"Sender: File {file_path} does not exist.")
+        return
+
     # Initialize the sender socket and network simulator address
     sender_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    simulator_address = ("localhost", 9999)  # The address of the network simulator
+    simulator_address = ("localhost", 9999)  # The address of the network simulator (sending to the simulator)
 
-    file_path = "bf2024.jpg"  # File to be sent
     sender = Sender(sender_sock, simulator_address, file_path)
 
-    sender_sock.bind(("0.0.0.0", 9997))  # Bind to an ephemeral port
+    # Bind the sender to a port for receiving ACKs (or a random ephemeral port)
+    sender_sock.bind(("0.0.0.0", 9997))  # Bind to an ephemeral port (change this if needed)
 
     # Start the sender to send packets
     sender.start()
